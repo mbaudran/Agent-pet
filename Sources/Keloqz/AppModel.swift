@@ -28,6 +28,7 @@ final class AppModel: ObservableObject {
     private var timers: [Timer] = []
     private var observers: [AnyCancellable] = []
     private var hideToolbar: DispatchWorkItem?
+    private var lastCovered: [String] = []
 
     var cookingCount: Int { sessions.filter(\.isCooking).count }
 
@@ -66,6 +67,8 @@ final class AppModel: ObservableObject {
             recentFolders = folders
             UserDefaults.standard.set(folders, forKey: "recentFolders")
         }
+        let covered = coveredSessionIds(sessions)
+        if covered.sorted() != lastCovered.sorted() { writeHeartbeat() } // a new session is covered right away
         let finished = turns.update(sessions)
         if sessions.contains(where: \.isCooking) { lastActivityAt = now }
         if !finished.isEmpty, !prefs.muted {
@@ -137,7 +140,9 @@ final class AppModel: ObservableObject {
 
     private func writeHeartbeat() {
         do {
-            try heartbeat.write(pid: ProcessInfo.processInfo.processIdentifier, now: Date(), muted: prefs.muted)
+            lastCovered = coveredSessionIds(sessions)
+            try heartbeat.write(pid: ProcessInfo.processInfo.processIdentifier, now: Date(), muted: prefs.muted,
+                                sessions: lastCovered)
         } catch {
             NSLog("Keloqz: heartbeat write failed: \(error)") // the mod falls back to banners
         }
