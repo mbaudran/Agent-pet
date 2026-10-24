@@ -20,7 +20,8 @@ final class PetPanel: NSPanel {
     private let prefs: Preferences
     private var observers: [AnyCancellable] = []
 
-    init(prefs: Preferences, player: SpritePlayer) {
+    init(model: AppModel) {
+        let prefs = model.prefs
         self.prefs = prefs
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: Self.width, height: Self.height(scale: prefs.scale)),
@@ -37,7 +38,7 @@ final class PetPanel: NSPanel {
         isMovableByWindowBackground = false
 
         let drag = DragMover(panel: self)
-        contentView = FirstMouseHostingView(rootView: PetView(prefs: prefs, player: player, drag: drag))
+        contentView = FirstMouseHostingView(rootView: PetView(model: model, prefs: prefs, player: model.player, drag: drag))
 
         prefs.$scale.dropFirst().sink { [weak self] scale in self?.resize(scale: scale) }.store(in: &observers)
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)

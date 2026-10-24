@@ -14,14 +14,23 @@ enum KeloqzMain {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let prefs = Preferences()
-    private var player: SpritePlayer!
+    private var model: AppModel!
     private var panel: PetPanel!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        player = SpritePlayer()
+        // KELOQZ_CLAUDE_DIR points a test copy at fake session files instead of ~/.claude.
+        if let dir = ProcessInfo.processInfo.environment["KELOQZ_CLAUDE_DIR"] {
+            model = AppModel(prefs: prefs, player: SpritePlayer(), claudeDir: URL(fileURLWithPath: dir))
+        } else {
+            model = AppModel(prefs: prefs, player: SpritePlayer())
+        }
         LoginItem.setUpOnFirstLaunch()
-        panel = PetPanel(prefs: prefs, player: player)
+        panel = PetPanel(model: model)
         panel.show()
-        player.play(.idle)
+        model.start()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        model?.stop() // banners come back right away
     }
 }

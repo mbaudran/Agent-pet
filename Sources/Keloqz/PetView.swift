@@ -3,17 +3,32 @@ import SwiftUI
 
 /// Bubble slot, the dog, toolbar slot — the dog anchored at the bottom centre.
 struct PetView: View {
+    @ObservedObject var model: AppModel
     @ObservedObject var prefs: Preferences
     @ObservedObject var player: SpritePlayer
     let drag: DragMover
 
     var body: some View {
         VStack(spacing: PetPanel.spacing) {
-            Color.clear.frame(height: PetPanel.bubbleHeight)
+            bubble.frame(height: PetPanel.bubbleHeight, alignment: .bottom)
             dog
             Color.clear.frame(height: PetPanel.toolbarHeight)
         }
         .frame(width: PetPanel.width)
+    }
+
+    @ViewBuilder private var bubble: some View {
+        let content = bubbleContent(current: model.current, sessions: model.sessions)
+        let visible: Bool = {
+            if case .idle = content { return model.isHovering }
+            return true
+        }()
+        if visible {
+            Bubble(lines: bubbleLines(content)) { model.dismissBubble() }
+                .frame(maxWidth: PetPanel.width - 8)
+                .onHover { model.setHovering($0) }
+                .transition(.opacity)
+        }
     }
 
     private var dog: some View {
@@ -28,11 +43,19 @@ struct PetView: View {
             }
         }
         .frame(width: 64 * scale, height: 48 * scale, alignment: .bottom)
+        .overlay(alignment: .topTrailing) {
+            Badge(cooking: model.cookingCount, hasUnseen: model.hasUnseen)
+                .padding(.top, 6 * scale)
+                .padding(.trailing, 10 * scale)
+        }
         .contentShape(Rectangle())
+        .onHover { model.setHovering($0) }
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .global)
                 .onChanged { _ in drag.changed() }
-                .onEnded { _ in _ = drag.ended() }
+                .onEnded { _ in
+                    if drag.ended() { model.noteActivity() }
+                }
         )
         .contextMenu { menu }
     }
