@@ -139,6 +139,9 @@ struct Session: Equatable {
 - The first read after launch is a **baseline** and emits nothing.
 - A `TurnFinished` is emitted when a session goes from cooking to not cooking, or its `endedAt`
   changes to a newer value.
+- Mirroring the mod, nothing is emitted for: aborted turns (Esc; needs a new `aborted` field in
+  the cocina row, added with the §6.4 mod change), sessions without a cocina file, sessions that
+  disappeared mid-turn, or rows missing `startedAt`/`endedAt`.
 - `TurnFinished`: name, dish (truncated to ~60 chars), duration (`endedAt − startedAt`),
   `ok = errors == 0`, `sticky = duration > 120 s`.
 - Events go into a FIFO queue; the bubble shows them one at a time.
