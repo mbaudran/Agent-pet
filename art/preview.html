@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Keloqz preview</title>
+<style>
+  body { margin: 0; background: #25272b; color: #9a9ca3; font: 12px -apple-system, system-ui; }
+  main { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; align-items: flex-end; padding: 32px; }
+  figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  canvas { image-rendering: pixelated; filter: drop-shadow(0 0 8px rgba(255, 170, 100, .32)); }
+</style>
+</head>
+<body>
+<!-- Serve with: python3 -m http.server -d art 8765 → http://localhost:8765/preview.html -->
+<main id="stage"></main>
+<script type="module">
+  import { POSES, renderFrame } from './keloqz.js'
+  const SCALE = 4
+  const stage = document.getElementById('stage')
+  for (const [pose, spec] of Object.entries(POSES)) {
+    const fig = document.createElement('figure')
+    const cv = document.createElement('canvas')
+    cv.width = spec.width * SCALE
+    cv.height = 48 * SCALE
+    cv.dataset.pose = pose
+    fig.append(cv, pose)
+    stage.append(fig)
+    const small = document.createElement('canvas')
+    small.width = spec.width
+    small.height = 48
+    let frame = 0
+    const paint = () => {
+      const { width, height, rgba } = renderFrame(pose, frame)
+      small.getContext('2d').putImageData(new ImageData(rgba, width, height), 0, 0)
+      const c = cv.getContext('2d')
+      c.imageSmoothingEnabled = false
+      c.clearRect(0, 0, cv.width, cv.height)
+      c.drawImage(small, 0, 0, cv.width, cv.height)
+      frame = (frame + 1) % spec.frames
+    }
+    paint()
+    setInterval(paint, 1000 / spec.fps)
+  }
+</script>
+</body>
+</html>

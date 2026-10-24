@@ -1,0 +1,26 @@
+{
+  "idle": {
+    "frames": 154,
+    "width": 48,
+    "height": 48,
+    "fps": 2.08
+  },
+  "play": {
+    "frames": 8,
+    "width": 64,
+    "height": 48,
+    "fps": 6.25
+  },
+  "done": {
+    "frames": 2,
+    "width": 48,
+    "height": 48,
+    "fps": 2.08
+  },
+  "sleep": {
+    "frames": 6,
+    "width": 64,
+    "height": 48,
+    "fps": 2.08
+  }
+}
