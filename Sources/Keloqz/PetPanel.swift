@@ -18,11 +18,13 @@ final class PetPanel: NSPanel {
     }
 
     private let prefs: Preferences
+    private let list: SessionListPanel
     private var observers: [AnyCancellable] = []
 
     init(model: AppModel) {
         let prefs = model.prefs
         self.prefs = prefs
+        list = SessionListPanel(model: model)
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: Self.width, height: Self.height(scale: prefs.scale)),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -40,6 +42,10 @@ final class PetPanel: NSPanel {
         let drag = DragMover(panel: self)
         contentView = FirstMouseHostingView(rootView: PetView(model: model, prefs: prefs, player: model.player, drag: drag))
 
+        model.$isListOpen.dropFirst().removeDuplicates().sink { [weak self] open in
+            guard let self else { return }
+            if open { self.list.show(beside: self) } else { self.list.hide() }
+        }.store(in: &observers)
         prefs.$scale.dropFirst().sink { [weak self] scale in self?.resize(scale: scale) }.store(in: &observers)
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.keepOnScreen() }

@@ -12,7 +12,7 @@ struct PetView: View {
         VStack(spacing: PetPanel.spacing) {
             bubble.frame(height: PetPanel.bubbleHeight, alignment: .bottom)
             dog
-            Color.clear.frame(height: PetPanel.toolbarHeight)
+            toolbar.frame(height: PetPanel.toolbarHeight, alignment: .top)
         }
         .frame(width: PetPanel.width)
     }
@@ -54,10 +54,16 @@ struct PetView: View {
             DragGesture(minimumDistance: 0, coordinateSpace: .global)
                 .onChanged { _ in drag.changed() }
                 .onEnded { _ in
-                    if drag.ended() { model.noteActivity() }
+                    if drag.ended() { model.toggleList() }
                 }
         )
         .contextMenu { menu }
+    }
+
+    @ViewBuilder private var toolbar: some View {
+        if model.toolbarVisible {
+            Toolbar(model: model, prefs: prefs).transition(.opacity)
+        }
     }
 
     @ViewBuilder private var menu: some View {

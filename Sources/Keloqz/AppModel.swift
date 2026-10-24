@@ -10,6 +10,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var current: TurnFinished?
     @Published private(set) var hasUnseen = false
     @Published private(set) var isHovering = false
+    @Published private(set) var toolbarVisible = false
+    @Published private(set) var isListOpen = false
+    @Published private(set) var recentFolders: [String] = UserDefaults.standard.stringArray(forKey: "recentFolders") ?? []
 
     let prefs: Preferences
     let player: SpritePlayer
@@ -24,6 +27,7 @@ final class AppModel: ObservableObject {
     private var watcher: DirectoryWatcher?
     private var timers: [Timer] = []
     private var observers: [AnyCancellable] = []
+    private var hideToolbar: DispatchWorkItem?
 
     var cookingCount: Int { sessions.filter(\.isCooking).count }
 
@@ -57,6 +61,11 @@ final class AppModel: ObservableObject {
     func refresh() {
         let now = Date()
         sessions = reader.read()
+        let folders = mergeRecent(recentFolders, adding: sessions.sorted { $0.updatedAt > $1.updatedAt }.map(\.cwd))
+        if folders != recentFolders {
+            recentFolders = folders
+            UserDefaults.standard.set(folders, forKey: "recentFolders")
+        }
         let finished = turns.update(sessions)
         if sessions.contains(where: \.isCooking) { lastActivityAt = now }
         if !finished.isEmpty, !prefs.muted {
@@ -82,7 +91,32 @@ final class AppModel: ObservableObject {
 
     func setHovering(_ hovering: Bool) {
         isHovering = hovering
-        if hovering { noteActivity() }
+        hideToolbar?.cancel()
+        if hovering {
+            toolbarVisible = true
+            noteActivity()
+        } else {
+            // linger 2 s so the mouse can travel from the dog to the toolbar
+            let work = DispatchWorkItem { [weak self] in
+                MainActor.assumeIsolated { if self?.isHovering == false { self?.toolbarVisible = false } }
+            }
+            hideToolbar = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: work)
+        }
+    }
+
+    func toggleList() {
+        if isListOpen { closeList() } else { openList() }
+    }
+
+    func openList() {
+        isListOpen = true
+        hasUnseen = false
+        noteActivity()
+    }
+
+    func closeList() {
+        isListOpen = false
     }
 
     func toggleMute() {
