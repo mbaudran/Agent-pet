@@ -7,6 +7,11 @@ enum KeloqzMain {
         let delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.accessory) // no Dock icon, no Cmd+Tab
+        // `pkill Keloqz` quits like the menu does, so the heartbeat file is removed.
+        signal(SIGTERM, SIG_IGN)
+        let sigterm = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+        sigterm.setEventHandler { NSApp.terminate(nil) }
+        sigterm.resume()
         app.run()
     }
 }
