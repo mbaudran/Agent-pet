@@ -4,6 +4,19 @@ Un pastor alemán en pixel art que vive encima de todas tus ventanas del Mac, co
 Codex. Te enseña qué hace cada sesión de Claude Code que tengas abierta y te avisa con un
 **¡Saltado!** cuando una termina, en lugar del banner de macOS de Lomo-Saltado.
 
+<p align="center"><img src="docs/images/poses.gif" alt="Keloqz esperando, trabajando (jugando con la pelota), ¡saltado! y durmiendo" width="840"></p>
+
+| En reposo | Al pasar el ratón | Trabajando |
+| :---: | :---: | :---: |
+| <img src="docs/images/screenshot-idle.png" alt="Keloqz sentado en la esquina de la pantalla" width="240"> | <img src="docs/images/screenshot-hover.png" alt="Burbuja con el resumen de sesiones y la barra de herramientas" width="260"> | <img src="docs/images/screenshot-working.png" alt="Keloqz jugando con la pelota mientras una sesión cocina" width="300"> |
+
+### Los cuatro estados
+
+| Esperando | Trabajando | ¡Saltado! | Durmiendo |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/images/idle.gif" alt="Esperando: parpadea, mueve la cola y la oreja doblada" width="150"> | <img src="docs/images/play.gif" alt="Trabajando: juega con una pelota de tenis" width="190"> | <img src="docs/images/done.gif" alt="¡Saltado!: salta con la lengua fuera" width="150"> | <img src="docs/images/sleep.gif" alt="Durmiendo: tumbado en el suelo" width="190"> |
+| sin nada cocinando | mientras alguna sesión trabaja | cuando una sesión termina | tras 5 minutos de calma |
+
 - **Burbuja:** el último aviso, o lo que está cocinando la sesión más reciente.
 - **Número en el hombro:** cuántas sesiones están cocinando. Punto rojo: aviso sin ver.
 - **Poses:** juega con la pelota mientras algo cocina, salta al terminar, se sienta cuando no
@@ -40,6 +53,7 @@ El perro se dibuja con código en `art/keloqz.js`. Para verlo animado:
 ```bash
 python3 -m http.server -d art 8765    # y abre http://localhost:8765/preview.html
 node tools/render-sprites.mjs         # regenera los PNG que usa la app
+python3 tools/readme-gifs.py          # regenera los GIF de este README (necesita Pillow)
 scripts/build.sh --install
 ```
 
