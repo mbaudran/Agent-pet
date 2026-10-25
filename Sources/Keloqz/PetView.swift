@@ -37,7 +37,7 @@ struct PetView: View {
         }()
         if visible {
             Bubble(lines: bubbleLines(content)) { model.dismissBubble() }
-                .frame(maxWidth: PetPanel.width - 8)
+                .frame(maxWidth: PetPanel.bubbleMaxWidth)
                 .onHover { model.setHovering($0) }
                 .transition(.opacity)
         }

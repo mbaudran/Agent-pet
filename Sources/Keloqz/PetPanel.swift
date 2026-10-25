@@ -8,7 +8,9 @@ import SwiftUI
 /// position across launches and screen changes.
 @MainActor
 final class PetPanel: NSPanel {
-    static let width: CGFloat = 300
+    /// Wide enough that the bubble can slide fully onto the screen when the dog sits in a corner.
+    static let width: CGFloat = 600
+    static let bubbleMaxWidth: CGFloat = 292
     static let bubbleHeight: CGFloat = 64
     static let toolbarHeight: CGFloat = 36
     static let spacing: CGFloat = 4
@@ -97,7 +99,7 @@ final class PetPanel: NSPanel {
 
     private func updateEdgeLayout() {
         guard let screen = (screen ?? NSScreen.main)?.visibleFrame else { return }
-        let edge = edgeLayout(panel: frame, toolbarHeight: Self.toolbarHeight, screen: screen)
+        let edge = edgeLayout(panel: frame, toolbarHeight: Self.toolbarHeight, bubbleWidth: Self.bubbleMaxWidth, screen: screen)
         if edge != layout.edge { layout.edge = edge }
     }
 

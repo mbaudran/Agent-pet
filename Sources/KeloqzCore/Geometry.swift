@@ -28,7 +28,7 @@ public func clampedOrigin(_ origin: CGPoint, size: CGSize, keep: CGRect, screens
 public struct EdgeLayout: Equatable, Sendable {
     /// The toolbar slot under the dog is off screen: show the toolbar above it.
     public let toolbarAbove: Bool
-    /// Horizontal nudge that keeps the bubble (as wide as the panel) on screen.
+    /// Horizontal nudge that keeps the bubble on screen.
     public let bubbleShift: CGFloat
 
     public init(toolbarAbove: Bool, bubbleShift: CGFloat) {
@@ -37,9 +37,12 @@ public struct EdgeLayout: Equatable, Sendable {
     }
 }
 
-public func edgeLayout(panel: CGRect, toolbarHeight: CGFloat, screen: CGRect) -> EdgeLayout {
+/// `bubbleWidth` is the widest the bubble gets; it is centred on the panel
+/// (over the dog) and slides only as far as it must to stay on screen.
+public func edgeLayout(panel: CGRect, toolbarHeight: CGFloat, bubbleWidth: CGFloat, screen: CGRect) -> EdgeLayout {
+    let half = bubbleWidth / 2
     var shift: CGFloat = 0
-    if panel.maxX > screen.maxX { shift = screen.maxX - panel.maxX }
-    if panel.minX < screen.minX { shift = screen.minX - panel.minX }
+    if panel.midX + half > screen.maxX { shift = screen.maxX - (panel.midX + half) }
+    if panel.midX - half < screen.minX { shift = screen.minX - (panel.midX - half) }
     return EdgeLayout(toolbarAbove: panel.minY < screen.minY, bubbleShift: shift)
 }
