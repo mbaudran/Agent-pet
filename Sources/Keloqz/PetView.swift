@@ -6,15 +6,27 @@ struct PetView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var prefs: Preferences
     @ObservedObject var player: SpritePlayer
+    @ObservedObject var layout: PanelLayout
     let drag: DragMover
 
+    // Every slot keeps its height whether or not something shows in it, so the
+    // dog never moves inside the panel.
     var body: some View {
         VStack(spacing: PetPanel.spacing) {
-            bubble.frame(height: PetPanel.bubbleHeight, alignment: .bottom)
+            VStack(spacing: 4) {
+                Spacer(minLength: 0)
+                bubble.offset(x: layout.edge.bubbleShift)
+                if layout.edge.toolbarAbove { toolbar }
+            }
+            .frame(width: PetPanel.width, height: PetPanel.bubbleArea)
             dog
-            toolbar.frame(height: PetPanel.toolbarHeight, alignment: .top)
+            ZStack(alignment: .top) {
+                Color.clear
+                if !layout.edge.toolbarAbove { toolbar }
+            }
+            .frame(width: PetPanel.width, height: PetPanel.toolbarHeight)
         }
-        .frame(width: PetPanel.width)
+        .frame(width: PetPanel.width, height: PetPanel.height(scale: prefs.scale), alignment: .bottom)
     }
 
     @ViewBuilder private var bubble: some View {

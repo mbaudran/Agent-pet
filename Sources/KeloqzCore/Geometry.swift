@@ -4,17 +4,42 @@ import CoreGraphics
 /// inside one of `screens` (visible frames), otherwise the closest origin that
 /// fits inside the screen nearest to the panel's centre.
 public func clampedOrigin(_ origin: CGPoint, size: CGSize, screens: [CGRect]) -> CGPoint {
-    let frame = CGRect(origin: origin, size: size)
-    if screens.isEmpty || screens.contains(where: { $0.contains(frame) }) { return origin }
-    let centre = CGPoint(x: frame.midX, y: frame.midY)
+    clampedOrigin(origin, size: size, keep: CGRect(origin: .zero, size: size), screens: screens)
+}
+
+/// Same, but only the `keep` part of the panel (in panel coordinates, e.g. the
+/// dog) has to stay on screen; the transparent rest may hang off the edge.
+public func clampedOrigin(_ origin: CGPoint, size: CGSize, keep: CGRect, screens: [CGRect]) -> CGPoint {
+    let kept = keep.offsetBy(dx: origin.x, dy: origin.y)
+    if screens.isEmpty || screens.contains(where: { $0.contains(kept) }) { return origin }
+    let centre = CGPoint(x: kept.midX, y: kept.midY)
     let distance = { (s: CGRect) -> CGFloat in
         let dx = max(s.minX - centre.x, 0, centre.x - s.maxX)
         let dy = max(s.minY - centre.y, 0, centre.y - s.maxY)
         return dx * dx + dy * dy
     }
     let screen = screens.min { distance($0) < distance($1) }!
-    return CGPoint(
-        x: min(max(origin.x, screen.minX), screen.maxX - size.width),
-        y: min(max(origin.y, screen.minY), screen.maxY - size.height)
-    )
+    let x = min(max(kept.minX, screen.minX), screen.maxX - kept.width)
+    let y = min(max(kept.minY, screen.minY), screen.maxY - kept.height)
+    return CGPoint(x: x - keep.minX, y: y - keep.minY)
+}
+
+/// How the bubble and toolbar make room when the dog sits at a screen edge.
+public struct EdgeLayout: Equatable, Sendable {
+    /// The toolbar slot under the dog is off screen: show the toolbar above it.
+    public let toolbarAbove: Bool
+    /// Horizontal nudge that keeps the bubble (as wide as the panel) on screen.
+    public let bubbleShift: CGFloat
+
+    public init(toolbarAbove: Bool, bubbleShift: CGFloat) {
+        self.toolbarAbove = toolbarAbove
+        self.bubbleShift = bubbleShift
+    }
+}
+
+public func edgeLayout(panel: CGRect, toolbarHeight: CGFloat, screen: CGRect) -> EdgeLayout {
+    var shift: CGFloat = 0
+    if panel.maxX > screen.maxX { shift = screen.maxX - panel.maxX }
+    if panel.minX < screen.minX { shift = screen.minX - panel.minX }
+    return EdgeLayout(toolbarAbove: panel.minY < screen.minY, bubbleShift: shift)
 }

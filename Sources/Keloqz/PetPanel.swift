@@ -12,11 +12,21 @@ final class PetPanel: NSPanel {
     static let bubbleHeight: CGFloat = 64
     static let toolbarHeight: CGFloat = 36
     static let spacing: CGFloat = 4
+    /// Room above the dog: the bubble, plus the toolbar when it can't go below.
+    static let bubbleArea: CGFloat = bubbleHeight + toolbarHeight
 
     static func height(scale: Int) -> CGFloat {
-        bubbleHeight + CGFloat(48 * scale) + toolbarHeight + spacing * 2
+        bubbleArea + CGFloat(48 * scale) + toolbarHeight + spacing * 2
     }
 
+    /// Where the dog sits inside the panel (bottom-left origin). Only this
+    /// part has to stay on screen.
+    static func dogRect(scale: Int) -> CGRect {
+        let s = CGFloat(scale)
+        return CGRect(x: (width - 64 * s) / 2, y: toolbarHeight + spacing, width: 64 * s, height: 48 * s)
+    }
+
+    let layout = PanelLayout()
     private let prefs: Preferences
     private let list: SessionListPanel
     private var observers: [AnyCancellable] = []
@@ -40,7 +50,10 @@ final class PetPanel: NSPanel {
         isMovableByWindowBackground = false
 
         let drag = DragMover(panel: self)
-        contentView = FirstMouseHostingView(rootView: PetView(model: model, prefs: prefs, player: model.player, drag: drag))
+        let hosting = FirstMouseHostingView(rootView: PetView(model: model, prefs: prefs, player: model.player,
+                                                             layout: layout, drag: drag))
+        hosting.sizingOptions = [] // the panel keeps its size; showing the bubble or toolbar must not move the dog
+        contentView = hosting
 
         model.$isListOpen.dropFirst().removeDuplicates().sink { [weak self] open in
             guard let self else { return }
@@ -50,6 +63,9 @@ final class PetPanel: NSPanel {
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.keepOnScreen() }
             .store(in: &observers)
+        NotificationCenter.default.publisher(for: NSWindow.didMoveNotification, object: self)
+            .sink { [weak self] _ in self?.updateEdgeLayout() }
+            .store(in: &observers)
     }
 
     override var canBecomeKey: Bool { false }
@@ -58,6 +74,7 @@ final class PetPanel: NSPanel {
     func show() {
         setFrameOrigin(prefs.panelOrigin ?? defaultOrigin())
         keepOnScreen()
+        updateEdgeLayout()
         orderFrontRegardless()
     }
 
@@ -72,14 +89,30 @@ final class PetPanel: NSPanel {
     }
 
     private func keepOnScreen() {
-        let origin = clampedOrigin(frame.origin, size: frame.size, screens: NSScreen.screens.map(\.visibleFrame))
+        let origin = clampedOrigin(frame.origin, size: frame.size, keep: Self.dogRect(scale: prefs.scale),
+                                   screens: NSScreen.screens.map(\.visibleFrame))
         if origin != frame.origin { setFrameOrigin(origin) }
+        updateEdgeLayout()
     }
 
+    private func updateEdgeLayout() {
+        guard let screen = (screen ?? NSScreen.main)?.visibleFrame else { return }
+        let edge = edgeLayout(panel: frame, toolbarHeight: Self.toolbarHeight, screen: screen)
+        if edge != layout.edge { layout.edge = edge }
+    }
+
+    /// First launch: the dog in the bottom-right corner, where MasIAPet sat.
     private func defaultOrigin() -> CGPoint {
         let screen = (NSScreen.main ?? NSScreen.screens[0]).visibleFrame
-        return CGPoint(x: screen.maxX - Self.width - 16, y: screen.minY + 8)
+        let dog = Self.dogRect(scale: prefs.scale)
+        return CGPoint(x: screen.maxX - 10 - dog.maxX, y: screen.minY + 4 - dog.minY)
     }
+}
+
+/// The edge adjustments the view draws with.
+@MainActor
+final class PanelLayout: ObservableObject {
+    @Published var edge = EdgeLayout(toolbarAbove: false, bubbleShift: 0)
 }
 
 /// Lets the first click land on SwiftUI controls even though the panel never
