@@ -6,10 +6,6 @@ Codex. Te enseña qué hace cada sesión de Claude Code que tengas abierta y te 
 
 <p align="center"><img src="docs/images/poses.gif" alt="Keloqz esperando, trabajando (jugando con la pelota), ¡saltado! y durmiendo" width="840"></p>
 
-| En reposo | Al pasar el ratón | Trabajando |
-| :---: | :---: | :---: |
-| <img src="docs/images/screenshot-idle.png" alt="Keloqz sentado en la esquina de la pantalla" width="240"> | <img src="docs/images/screenshot-hover.png" alt="Burbuja con el resumen de sesiones y la barra de herramientas" width="260"> | <img src="docs/images/screenshot-working.png" alt="Keloqz jugando con la pelota mientras una sesión cocina" width="300"> |
-
 ### Los cuatro estados
 
 | Esperando | Trabajando | ¡Saltado! | Durmiendo |
