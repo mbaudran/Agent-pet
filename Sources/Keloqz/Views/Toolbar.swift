@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Under Keloqz while hovering: 🐾 session list · ＋ new session · 🔕 mute.
+/// Under Keloqz while hovering: 🐾 session list · ＋ new session · 🔕 mute · – minimize.
 struct Toolbar: View {
     @ObservedObject var model: AppModel
     @ObservedObject var prefs: Preferences
@@ -26,6 +26,9 @@ struct Toolbar: View {
             divider
             Button { model.toggleMute() } label: { segment(prefs.muted ? "🔔" : "🔕") }
                 .help(prefs.muted ? "Activar avisos" : "Silenciar")
+            divider
+            Button { model.minimize() } label: { segment("–") }
+                .help("Minimizar a la barra de menús")
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 6)

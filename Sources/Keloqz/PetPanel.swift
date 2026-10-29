@@ -31,12 +31,14 @@ final class PetPanel: NSPanel {
     let layout = PanelLayout()
     private let prefs: Preferences
     private let list: SessionListPanel
+    private let menuBar: MenuBarItem
     private var observers: [AnyCancellable] = []
 
     init(model: AppModel) {
         let prefs = model.prefs
         self.prefs = prefs
         list = SessionListPanel(model: model)
+        menuBar = MenuBarItem(model: model)
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: Self.width, height: Self.height(scale: prefs.scale)),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -61,6 +63,11 @@ final class PetPanel: NSPanel {
             guard let self else { return }
             if open { self.list.show(beside: self) } else { self.list.hide() }
         }.store(in: &observers)
+        prefs.$minimized.dropFirst().removeDuplicates().sink { [weak self] minimized in
+            guard let self else { return }
+            if minimized { self.orderOut(nil) } else { self.orderFrontRegardless() }
+            self.menuBar.setVisible(minimized)
+        }.store(in: &observers)
         prefs.$scale.dropFirst().sink { [weak self] scale in self?.resize(scale: scale) }.store(in: &observers)
         NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
             .sink { [weak self] _ in self?.keepOnScreen() }
@@ -77,7 +84,7 @@ final class PetPanel: NSPanel {
         setFrameOrigin(prefs.panelOrigin ?? defaultOrigin())
         keepOnScreen()
         updateEdgeLayout()
-        orderFrontRegardless()
+        if prefs.minimized { menuBar.setVisible(true) } else { orderFrontRegardless() }
     }
 
     func dragEnded() {

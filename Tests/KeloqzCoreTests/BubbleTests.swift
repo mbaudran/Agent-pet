@@ -63,3 +63,13 @@ private let finished = TurnFinished(sessionId: "x", name: "chaska-nawi", dish: "
     #expect(formatDuration(242) == "4m 02s")
     #expect(formatDuration(3900) == "1h 05m")
 }
+
+@Test func cookingKeyChangesWhenATurnStartsOrEnds() {
+    let a = cooking("a", updated: 0), b = cooking("b", updated: 0)
+    #expect(cookingKey([a, served("c")]) == cookingKey([a]))
+    #expect(cookingKey([a]) != cookingKey([a, b]))
+    var next = a
+    next.startedAt = t0 + 30
+    #expect(cookingKey([a]) != cookingKey([next]))
+    #expect(cookingKey([served("a")]).isEmpty)
+}

@@ -12,6 +12,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var isHovering = false
     @Published private(set) var toolbarVisible = false
     @Published private(set) var isListOpen = false
+    /// The user closed the cooking bubble; it comes back when a turn starts or ends.
+    @Published private(set) var cookingHidden = false
     @Published private(set) var recentFolders: [String] = UserDefaults.standard.stringArray(forKey: "recentFolders") ?? []
 
     let prefs: Preferences
@@ -29,6 +31,7 @@ final class AppModel: ObservableObject {
     private var observers: [AnyCancellable] = []
     private var hideToolbar: DispatchWorkItem?
     private var lastCovered: [String] = []
+    private var hiddenCooking: Set<String> = []
 
     var cookingCount: Int { sessions.filter(\.isCooking).count }
 
@@ -53,6 +56,10 @@ final class AppModel: ObservableObject {
         prefs.$muted.dropFirst().sink { [weak self] _ in
             DispatchQueue.main.async { self?.writeHeartbeat() }
         }.store(in: &observers)
+        prefs.$minimized.dropFirst().sink { [weak self] minimized in
+            if minimized { self?.closeList() }
+            DispatchQueue.main.async { self?.writeHeartbeat() }
+        }.store(in: &observers)
     }
 
     func stop() {
@@ -67,11 +74,12 @@ final class AppModel: ObservableObject {
             recentFolders = folders
             UserDefaults.standard.set(folders, forKey: "recentFolders")
         }
-        let covered = coveredSessionIds(sessions)
-        if covered.sorted() != lastCovered.sorted() { writeHeartbeat() } // a new session is covered right away
+        if announced().sorted() != lastCovered.sorted() { writeHeartbeat() } // a new session is covered right away
         let finished = turns.update(sessions)
         if sessions.contains(where: \.isCooking) { lastActivityAt = now }
-        if !finished.isEmpty, !prefs.muted {
+        if cookingHidden, cookingKey(sessions) != hiddenCooking { cookingHidden = false }
+        // minimized, Lomo-Saltado's banners announce the turns instead
+        if !finished.isEmpty, !prefs.muted, !prefs.minimized {
             queue.push(finished, now: now)
             current = queue.current
             hasUnseen = true
@@ -85,6 +93,28 @@ final class AppModel: ObservableObject {
         queue.dismiss(now: Date())
         current = queue.current
         hasUnseen = false
+    }
+
+    /// The bubble's ✕: drops every ¡Saltado! waiting, or hides the cooking
+    /// bubble when there is none.
+    func closeBubble() {
+        if current != nil {
+            queue.clear()
+            current = nil
+        } else {
+            hiddenCooking = cookingKey(sessions)
+            cookingHidden = true
+        }
+        hasUnseen = false
+    }
+
+    func minimize() {
+        prefs.minimized = true
+    }
+
+    func restore() {
+        prefs.minimized = false
+        noteActivity()
     }
 
     func noteActivity() {
@@ -140,12 +170,17 @@ final class AppModel: ObservableObject {
 
     private func writeHeartbeat() {
         do {
-            lastCovered = coveredSessionIds(sessions)
+            lastCovered = announced()
             try heartbeat.write(pid: ProcessInfo.processInfo.processIdentifier, now: Date(), muted: prefs.muted,
                                 sessions: lastCovered)
         } catch {
             NSLog("Keloqz: heartbeat write failed: \(error)") // the mod falls back to banners
         }
+    }
+
+    /// Minimized, Keloqz covers no session, so the mod's banners come back.
+    private func announced() -> [String] {
+        prefs.minimized ? [] : coveredSessionIds(sessions)
     }
 
     private func every(_ seconds: TimeInterval, _ action: @escaping (AppModel) -> Void) {

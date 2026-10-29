@@ -14,12 +14,16 @@ Codex. Te enseña qué hace cada sesión de Claude Code que tengas abierta y te 
 | sin nada cocinando | mientras alguna sesión trabaja | cuando una sesión termina | tras 5 minutos de calma |
 
 - **Burbuja:** el último aviso, o lo que está cocinando la sesión más reciente.
+  Pasa el ratón por encima y pulsa ✕ para borrarla (borra también los avisos en cola).
 - **Número en el hombro:** cuántas sesiones están cocinando. Punto rojo: aviso sin ver.
 - **Poses:** juega con la pelota mientras algo cocina, salta al terminar, se sienta cuando no
   hay nada y se tumba a dormir tras 5 minutos de calma.
 - **Clic en Keloqz:** lista de sesiones; clic en una fila y te lleva a su pestaña de Terminal.
-- **Al pasar el ratón:** 🐾 sesiones · ＋ nueva sesión de Claude en una carpeta · 🔕 silenciar.
-- **Clic derecho:** Silenciar · Tamaño S/M/L · Abrir al iniciar sesión · Salir de Keloqz.
+- **Al pasar el ratón:** 🐾 sesiones · ＋ nueva sesión de Claude en una carpeta · 🔕 silenciar ·
+  – minimizar.
+- **Minimizado:** Keloqz se esconde en la barra de menús (🐾 y cuántas sesiones cocinan); clic
+  para traerlo de vuelta. Mientras tanto vuelven los banners de Lomo-Saltado.
+- **Clic derecho:** Silenciar · Tamaño S/M/L · Minimizar · Abrir al iniciar sesión · Salir de Keloqz.
 
 ## Compilar e instalar
 

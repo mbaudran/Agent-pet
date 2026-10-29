@@ -17,6 +17,12 @@ public func bubbleContent(current: TurnFinished?, sessions: [Session]) -> Bubble
     return .idle(count: sessions.count)
 }
 
+/// Identifies the turns cooking right now, so a cooking bubble the user closed
+/// stays closed until a turn starts or ends.
+public func cookingKey(_ sessions: [Session]) -> Set<String> {
+    Set(sessions.filter(\.isCooking).map { "\($0.id)@\($0.startedAt?.timeIntervalSince1970 ?? 0)" })
+}
+
 public struct BubbleLines: Equatable, Sendable {
     public let title: String
     public let subtitle: String?

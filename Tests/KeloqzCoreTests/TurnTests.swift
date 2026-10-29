@@ -115,6 +115,17 @@ private func turn(_ id: String, sticky: Bool = false) -> TurnFinished {
     #expect(queue.current?.sessionId == "a")
 }
 
+@Test func clearDropsCurrentAndWaiting() {
+    var queue = NotificationQueue()
+    queue.push([turn("a", sticky: true), turn("b")], now: t0)
+    queue.clear()
+    #expect(queue.current == nil)
+    queue.advance(now: t0 + 60)
+    #expect(queue.current == nil)
+    queue.push([turn("c")], now: t0 + 61)
+    #expect(queue.current?.sessionId == "c")
+}
+
 @Test func bubbleTextCollapsesAndTruncatesByGrapheme() {
     #expect(bubbleText("a\n\n  b") == "a b")
     #expect(bubbleText(String(repeating: "🐕", count: 70)) == String(repeating: "🐕", count: 59) + "…")

@@ -71,6 +71,12 @@ public struct NotificationQueue {
         showNext(now: now)
     }
 
+    /// Drops the bubble on screen and every one still waiting.
+    public mutating func clear() {
+        waiting.removeAll()
+        current = nil
+    }
+
     private mutating func showNext(now: Date) {
         current = waiting.isEmpty ? nil : waiting.removeFirst()
         shownAt = now

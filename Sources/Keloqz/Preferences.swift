@@ -16,6 +16,11 @@ final class Preferences: ObservableObject {
         didSet { defaults.set(muted, forKey: "muted") }
     }
 
+    /// Keloqz is hidden and waits in the menu bar.
+    @Published var minimized: Bool {
+        didSet { defaults.set(minimized, forKey: "minimized") }
+    }
+
     var panelOrigin: CGPoint? {
         get {
             guard let xy = defaults.array(forKey: "panelOrigin") as? [Double], xy.count == 2 else { return nil }
@@ -28,5 +33,6 @@ final class Preferences: ObservableObject {
         let saved = defaults.integer(forKey: "scale")
         scale = Self.scales.contains(saved) ? saved : 2
         muted = defaults.bool(forKey: "muted")
+        minimized = defaults.bool(forKey: "minimized")
     }
 }

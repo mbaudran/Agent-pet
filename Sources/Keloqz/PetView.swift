@@ -32,11 +32,15 @@ struct PetView: View {
     @ViewBuilder private var bubble: some View {
         let content = bubbleContent(current: model.current, sessions: model.sessions)
         let visible: Bool = {
-            if case .idle = content { return model.isHovering }
-            return true
+            switch content {
+            case .idle: return model.isHovering
+            case .cooking: return !model.cookingHidden
+            case .finished: return true
+            }
         }()
         if visible {
-            Bubble(lines: bubbleLines(content)) { model.dismissBubble() }
+            Bubble(lines: bubbleLines(content), onTap: { model.dismissBubble() },
+                   onClose: { model.closeBubble() })
                 .frame(maxWidth: PetPanel.bubbleMaxWidth)
                 .onHover { model.setHovering($0) }
                 .transition(.opacity)
@@ -85,6 +89,7 @@ struct PetView: View {
             Text("M").tag(3)
             Text("L").tag(4)
         }
+        Button("Minimizar") { model.minimize() }
         Toggle("Abrir al iniciar sesión", isOn: Binding(get: { LoginItem.isEnabled }, set: { LoginItem.set($0) }))
         Divider()
         Button("Salir de Keloqz") { NSApp.terminate(nil) }
