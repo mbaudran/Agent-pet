@@ -22,7 +22,7 @@ Codex. Te enseña qué hace cada sesión de Claude Code que tengas abierta y te 
 - **Al pasar el ratón:** 🐾 sesiones · ＋ nueva sesión de Claude en una carpeta · 🔕 silenciar ·
   – minimizar.
 - **Minimizado:** Keloqz se esconde en la barra de menús (🐾 y cuántas sesiones cocinan); clic
-  para traerlo de vuelta. Mientras tanto vuelven los banners de Lomo-Saltado.
+  para traerlo de vuelta (o vuelve a abrir Keloqz desde Aplicaciones o Spotlight). Mientras tanto vuelven los banners de Lomo-Saltado.
 - **Clic derecho:** Silenciar · Tamaño S/M/L · Minimizar · Abrir al iniciar sesión · Salir de Keloqz.
 
 ## Compilar e instalar

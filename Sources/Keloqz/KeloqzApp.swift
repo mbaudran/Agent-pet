@@ -35,6 +35,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model.start()
     }
 
+    /// Opening Keloqz again (Finder, Spotlight, `open`) brings a minimized dog
+    /// back, in case the menu bar item is hidden behind the notch.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        model?.restore()
+        return false
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         model?.stop() // banners come back right away
     }
