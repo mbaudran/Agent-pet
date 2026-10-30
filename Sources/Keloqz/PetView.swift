@@ -55,6 +55,7 @@ struct PetView: View {
                     .interpolation(.none)
                     .resizable()
                     .frame(width: CGFloat(player.frameWidth) * scale, height: 48 * scale)
+                    .scaleEffect(x: model.facingRight && player.pose == .run ? -1 : 1, y: 1)
                     .shadow(color: Color(red: 1, green: 0.67, blue: 0.39).opacity(0.32), radius: 8)
             }
         }
@@ -68,8 +69,11 @@ struct PetView: View {
         .onHover { model.setHovering($0) }
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .global)
-                .onChanged { _ in drag.changed() }
+                .onChanged { _ in
+                    if let dx = drag.changed() { model.dragged(dx) }
+                }
                 .onEnded { _ in
+                    model.dragEnded()
                     if drag.ended() { model.toggleList() }
                 }
         )
@@ -88,6 +92,11 @@ struct PetView: View {
             Text("S").tag(2)
             Text("M").tag(3)
             Text("L").tag(4)
+        }
+        Menu("Trucos") {
+            Button("Comer") { model.perform(.eat) }
+            Button("Hacer pis") { model.perform(.pee) }
+            Button("Correr") { model.perform(.run) }
         }
         Button("Minimizar") { model.minimize() }
         Toggle("Abrir al iniciar sesión", isOn: Binding(get: { LoginItem.isEnabled }, set: { LoginItem.set($0) }))

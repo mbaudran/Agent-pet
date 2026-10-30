@@ -28,6 +28,21 @@ func choosesPose(_ c: PoseCase) {
     #expect(pose == c.expected)
 }
 
+@Test func runsWhileDragged() {
+    #expect(choosePose(lastNotificationAt: now - 0.5, anyCooking: true, lastActivityAt: now, now: now, dragging: true) == .run)
+}
+
+@Test func trickBeatsPlayAndSleepButNotSaltado() {
+    let pose = { (notifiedAgo: TimeInterval?, cooking: Bool, activeAgo: TimeInterval) in
+        choosePose(lastNotificationAt: notifiedAgo.map { now - $0 }, anyCooking: cooking,
+                   lastActivityAt: now - activeAgo, now: now, trick: .pee)
+    }
+    #expect(pose(nil, false, 0) == .pee)
+    #expect(pose(nil, true, 0) == .pee)
+    #expect(pose(nil, false, 900) == .pee)
+    #expect(pose(0.5, false, 0) == .done)
+}
+
 @Test func loadsBundledSpriteInfo() throws {
     let url = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

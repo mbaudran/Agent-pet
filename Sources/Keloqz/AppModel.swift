@@ -14,6 +14,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var isListOpen = false
     /// The user closed the cooking bubble; it comes back when a turn starts or ends.
     @Published private(set) var cookingHidden = false
+    /// While dragged he runs the way the mouse goes; the sprite faces left.
+    @Published private(set) var facingRight = false
     @Published private(set) var recentFolders: [String] = UserDefaults.standard.stringArray(forKey: "recentFolders") ?? []
 
     let prefs: Preferences
@@ -26,6 +28,9 @@ final class AppModel: ObservableObject {
     private var queue = NotificationQueue()
     private var lastNotificationAt: Date?
     private var lastActivityAt = Date()
+    private var tricks = TrickSchedule(now: Date())
+    private var trickEnd: DispatchWorkItem?
+    private var dragging = false
     private var watcher: DirectoryWatcher?
     private var timers: [Timer] = []
     private var observers: [AnyCancellable] = []
@@ -138,6 +143,30 @@ final class AppModel: ObservableObject {
         }
     }
 
+    /// Eat, pee or run right now (the menu's Trucos).
+    func perform(_ trick: Pose) {
+        let now = Date()
+        tricks.perform(trick, now: now)
+        noteActivity()
+        endTrickOnTime(now: now)
+    }
+
+    /// The dog moved `dx` points sideways under the mouse.
+    func dragged(_ dx: CGFloat) {
+        if abs(dx) >= 1 { facingRight = dx > 0 } // a straight-up drag keeps the last direction
+        if !dragging {
+            dragging = true
+            noteActivity()
+        }
+    }
+
+    func dragEnded() {
+        guard dragging else { return }
+        dragging = false
+        facingRight = false
+        noteActivity()
+    }
+
     func toggleList() {
         if isListOpen { closeList() } else { openList() }
     }
@@ -164,8 +193,26 @@ final class AppModel: ObservableObject {
     }
 
     private func updatePose(now: Date) {
-        player.play(choosePose(lastNotificationAt: lastNotificationAt, anyCooking: sessions.contains(where: \.isCooking),
-                               lastActivityAt: lastActivityAt, now: now))
+        let cooking = sessions.contains(where: \.isCooking)
+        let pose = { (trick: Pose?) in
+            choosePose(lastNotificationAt: self.lastNotificationAt, anyCooking: cooking, lastActivityAt: self.lastActivityAt,
+                       now: now, dragging: self.dragging, trick: trick)
+        }
+        let startedBefore = tricks.endsAt
+        let trick = tricks.update(awake: [.idle, .play].contains(pose(nil)), now: now)
+        if tricks.endsAt != startedBefore { endTrickOnTime(now: now) }
+        player.play(pose(trick))
+    }
+
+    /// The 1 s tick is too coarse: a trick that overran would restart its loop.
+    private func endTrickOnTime(now: Date) {
+        trickEnd?.cancel()
+        guard let end = tricks.endsAt else { return }
+        let work = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated { self?.updatePose(now: Date()) }
+        }
+        trickEnd = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + end.timeIntervalSince(now), execute: work)
     }
 
     private func writeHeartbeat() {

@@ -11,15 +11,19 @@ export const POSES = {
   play: { width: 64, frames: 8, fps: 6.25 },
   done: { width: 48, frames: 2, fps: 2.08 },
   sleep: { width: 64, frames: 6, fps: 2.08 },
+  eat: { width: 64, frames: 8, fps: 4 },
+  pee: { width: 64, frames: 80, fps: 4 },
+  run: { width: 64, frames: 6, fps: 12.5 },
 }
 
 const N = HEIGHT
-const ROLES = ['_', 'outline', 'dark', 'dark2', 'tan', 'tanL', 'tanS', 'ear', 'eye', 'white', 'nose', 'tongue', 'collar', 'tag', 'mask', 'ball', 'shadow', 'maskL', 'band', 'bandS']
+const ROLES = ['_', 'outline', 'dark', 'dark2', 'tan', 'tanL', 'tanS', 'ear', 'eye', 'white', 'nose', 'tongue', 'collar', 'tag', 'mask', 'ball', 'shadow', 'maskL', 'band', 'bandS', 'bowl', 'bowlS', 'pee', 'peeL', 'dust']
 const R = Object.fromEntries(ROLES.map((r, i) => [r, i]))
 const PAL = {
   outline: '#140d0b', dark: '#1d1517', dark2: '#3a2a2a', tan: '#a3552a', tanL: '#c97c3a', tanS: '#73391a',
   ear: '#80504a', eye: '#1a0d07', white: '#fff3e0', nose: '#0c0809', tongue: '#e07e98', collar: '#5b5cf0', tag: '#ffffff',
   mask: '#4e3127', maskL: '#7a4122', band: '#d8342c', bandS: '#9a1f1b', ball: '#c9dc45',
+  bowl: '#3f8fd8', bowlS: '#22507f', pee: '#f0c93a', peeL: '#fff09a', dust: '#b9a58f',
 }
 const SHADOW_RGBA = [0, 0, 0, Math.round(0.35 * 255)]
 
@@ -91,6 +95,7 @@ function frontHead(g, eyes, tongue, flop) {
   g.ell(24, 22, 4.5, 3.4, 'mask')
   for (const x of [18, 28]) {
     if (eyes === 'open') { g.rect(x, 15, 3, 2, 'eye'); g.px(x, 15, 'white') }
+    else if (eyes === 'right') { g.rect(x + 1, 15, 3, 2, 'eye'); g.px(x + 1, 15, 'white'); g.px(x, 16, 'mask') }
     else if (eyes === 'left') { g.rect(x - 1, 15, 3, 2, 'eye'); g.px(x - 1, 15, 'white'); g.px(x + 2, 16, 'mask') }
     else if (eyes === 'up') { g.rect(x - 1, 14, 3, 2, 'eye'); g.px(x - 1, 14, 'white'); g.px(x + 1, 16, 'mask') }
     else if (eyes === 'blink') g.rect(x, 16, 3, 1, 'eye')
@@ -144,9 +149,156 @@ function play(buf, W, t) {
   b.px(bx - 3, by, 'white'); b.px(bx - 2, by - 1, 'white'); b.px(bx - 1, by - 1, 'white'); b.px(bx + 1, by + 1, 'white'); b.px(bx + 2, by + 1, 'white'); b.px(bx + 3, by, 'white')
 }
 
+// Standing side-on, facing left: torso from chest to rump with the dark saddle on top.
+function torso(g, cx, cy, rx, ry) {
+  g.stroke(cx, cy, 6, rx, ry, 5.5, 'tan')
+  g.stroke(cx + 2, cy - 4, 3.5, rx, ry - 4, 3.2, 'dark')
+  g.stroke(cx + 1, cy + 3, 2.6, rx - 5, ry + 3, 2, 'tanL')
+  for (const [x, y] of [[cx + 6, cy + 1], [cx + 11, cy + 2], [rx - 3, ry + 1], [cx + 8, cy - 1]]) g.px(x, y, 'tanS')
+}
+
+// A leg from hip or shoulder to paw; far legs are in shade.
+function leg(g, x0, y0, x1, y1, far) {
+  g.stroke(x0, y0, far ? 2 : 2.4, x1, y1, far ? 1.5 : 1.7, far ? 'tanS' : 'tan')
+  g.ell(x1 - .5, y1, far ? 1.8 : 2.1, far ? 1.1 : 1.3, far ? 'tanS' : 'tanL')
+}
+
+// the bandana knotted round a neck seen from the side
+function neckBand(g, x0, y0, x1, y1) {
+  g.stroke(x0, y0, 1.2, x1, y1, 1.2, 'band')
+  g.px((x0 + x1) / 2, (y0 + y1) / 2, 'white'); g.px(x1, y1 - 1, 'white')
+}
+
+// Eating from his bowl: head down munching, crumbs on each chew, then a lick.
+const DIP = [3, 1, 3, 1, 3, 1, -1, -1]
+function eat(buf, W, t) {
+  const i = t % 8, dip = DIP[i], g = painter(buf, W, 0, 0)
+  const wag = [0, 1.5, 0, -1.5][t % 4]
+  g.ell(32, 46.6, 24, .6, 'shadow')
+  leg(g, 27, 34, 28, 44.5, true); leg(g, 46, 32, 48, 44.5, true)
+  g.stroke(48, 27, 2.3, 54, 31, 2, 'dark'); g.stroke(54, 31, 2, 56 + wag, 37, 1.4, 'dark')
+  g.ell(56 + wag, 37.5, 1.1, 1.1, 'dark2')
+  torso(g, 25, 31, 44, 28)
+  g.ell(43, 32, 5, 5, 'tan')
+  leg(g, 22, 34, 21, 44.5); leg(g, 43, 34, 44, 44.5)
+  g.stroke(17, 29, 4.5, 25, 30, 5.5, 'tan')
+  neckBand(g, 26, 24, 27, 35)
+  frontHead(painter(buf, W, -9, 15 + dip), dip > 0 ? 'closed' : 'happy', dip < 0, false)
+  // the bowl, drawn over the muzzle so the nose dips into it
+  const b = painter(buf, W, 0, 0)
+  b.ell(15, 40.4, 10.5, 1.4, 'bowlS')
+  for (const [x, y] of [[9, 39], [12, 39], [15, 39], [18, 39], [21, 39], [11, 40], [17, 40]]) b.px(x, y, i % 3 ? 'tanS' : 'maskL')
+  for (let y = 41; y <= 45; y++) { const hw = 11.5 - (y - 41) * .6; b.rect(Math.round(15 - hw), y, Math.round(hw * 2), 1, y === 41 ? 'bowlS' : 'bowl') }
+  b.rect(4, 41, 22, 1, 'bowl')
+  b.rect(12, 43, 6, 1, 'white'); b.px(11, 42, 'white'); b.px(11, 44, 'white'); b.px(18, 42, 'white'); b.px(18, 44, 'white')
+  if (dip === 1) { b.px(6, 36 - i % 3, 'tanS'); b.px(24, 35, 'maskL') }
+}
+
+// Lifting a leg against a fire hydrant, then a proud kick of dust. One pee
+// fills the whole 20 s trick: lift, a long stream, lower, kick, kick.
+const PEE_END = 72 // frame the leg starts coming down
+function pee(buf, W, t) {
+  const i = t % 80, g = painter(buf, W, 0, 0)
+  const lift = i <= 1 || i > PEE_END ? 0 : i === 2 || i === PEE_END ? .5 : 1
+  const kick = i === 76 || i === 78, streaming = i >= 3 && i < PEE_END
+  const wag = [0, 1, 0, -1][t % 4]
+  // hydrant
+  g.ell(56.5, 46.6, 6, .6, 'shadow')
+  g.rect(51, 44, 11, 2, 'bandS')
+  g.rect(53, 30, 7, 14, 'band'); g.rect(58, 31, 2, 13, 'bandS')
+  g.ell(56.5, 29.5, 4.5, 2.5, 'band'); g.rect(55, 25, 3, 2, 'bandS')
+  g.rect(51, 34, 2, 3, 'bandS'); g.rect(60, 34, 2, 3, 'bandS')
+  g.rect(53, 39, 7, 1, 'bandS')
+  // the dog
+  g.ell(28, 46.6, 18, .6, 'shadow')
+  leg(g, 22, 34, 23, 44.5, true)
+  if (kick) leg(g, 39, 33, 47, 43, true)
+  else leg(g, 40, 33, 40, 44.5, true)
+  const tailUp = lift ? 1 : 0
+  g.stroke(42, 27, 2.2, 46, 22 + 2 * (1 - tailUp), 1.9, 'dark'); g.stroke(46, 22 + 2 * (1 - tailUp), 1.9, 47 + wag, 16 + 6 * (1 - tailUp), 1.4, 'dark')
+  g.ell(47 + wag, 15.5 + 6 * (1 - tailUp), 1.1, 1.1, 'dark2')
+  torso(g, 19, 31, 38, 30)
+  g.ell(38, 32, 5, 5, 'tan')
+  leg(g, 17, 34, 16, 44.5)
+  if (lift) { leg(g, 40, 34, 40 + 9 * lift, 40 - 8 * lift); g.stroke(41, 36, .5, 40 + 9 * lift, 41.5 - 8 * lift, .5, 'tanS') }
+  else if (kick) leg(g, 39, 34, 48, 41)
+  else leg(g, 38, 34, 38, 44.5)
+  const h = painter(buf, W, -10, 1)
+  bandana(h)
+  const gaze = streaming ? ['left', 'up', 'up', 'left'][Math.floor(i / 8) % 4] : i <= 1 ? 'right' : i > PEE_END ? 'happy' : 'left'
+  frontHead(h, gaze, i > PEE_END, i % 6 !== 5)
+  // stream and puddle
+  const s = painter(buf, W, 0, 0)
+  if (streaming) {
+    for (let x = 44; x <= 51; x++) if ((x + i) % 3) s.px(x, Math.round(36 + (x - 44) * (x - 44) * .08), 'pee')
+    if (i % 2) { s.px(52, 37, 'peeL'); s.px(51, 40, 'peeL') } else s.px(52, 39, 'peeL')
+  }
+  if (i >= 4) {
+    const r = Math.min(7, 1 + (i - 4) * .2)
+    s.ell(51 - r / 3, 46, r, .7, 'pee')
+    if (r > 3) s.px(49, 46, 'peeL')
+  }
+  if (kick) { s.ell(54, 43, 1.5, 1.2, 'dust'); s.px(58, 41, 'dust'); s.px(50, 41, 'dust') }
+}
+
+// Head in profile looking where he runs (left): long dark muzzle, ears swept
+// back, tongue flapping, bandana knotted on the neck.
+function sideHead(g, i) {
+  const flap = i % 2
+  g.stroke(27, 28, 5, 20, 21, 4.5, 'tan')
+  g.stroke(28, 24, 3, 22, 17, 2.4, 'dark')
+  g.stroke(21, 12, 2.6, 27, 5 + flap, 1, 'dark')
+  g.stroke(18, 12, 3, 23, 3 + flap, 1, 'dark')
+  g.stroke(18.5, 11, 1.4, 22, 5 + flap, .6, 'ear')
+  g.ell(17, 16, 6.5, 5.5, 'tan')
+  g.ell(19, 12.5, 4.5, 2.2, 'mask')
+  g.ell(18, 19.5, 3.5, 2.5, 'tanL')
+  g.stroke(13, 17.5, 3.4, 6, 19, 2.4, 'mask')
+  g.stroke(13, 15.5, 1, 7, 17.5, .8, 'maskL')
+  g.ell(4.6, 18.6, 1.6, 1.4, 'nose')
+  g.stroke(13, 21.5, 1.6, 8, 21.5, 1.2, 'mask')
+  g.rect(9, 22, 3, 2 + flap, 'tongue'); g.px(10 + flap, 24 + flap, 'tongue')
+  g.rect(14, 14, 3, 2, 'eye'); g.px(14, 14, 'white')
+  g.rect(14, 12, 3, 1, 'tanL')
+  neckBand(g, 21, 23, 25, 31)
+  g.tri(21, 28, 26, 30, 17 - flap, 34, 'band')
+  g.px(20, 30, 'white'); g.px(22, 31, 'white'); g.px(19, 32, 'white')
+}
+
+// Galloping on the spot: stretch, front plant, gather, rear plant.
+const GALLOP = [
+  // bounce, near front, far front, near rear, far rear (paw x, y)
+  [1, [11, 37], [14, 39], [57, 37], [55, 40]],
+  [0, [17, 44.5], [13, 42], [53, 42], [55, 40]],
+  [-1, [24, 44.5], [20, 44.5], [47, 43], [51, 42]],
+  [-3, [29, 40], [27, 41], [36, 41], [39, 42]],
+  [-1, [21, 37], [24, 39], [40, 44.5], [36, 44.5]],
+  [0, [14, 36], [17, 38], [47, 44.5], [43, 44.5]],
+]
+function run(buf, W, t) {
+  const i = t % 6, [bob, nf, ff, nr, fr] = GALLOP[i], g = painter(buf, W, 0, bob)
+  const shadow = painter(buf, W, 0, 0)
+  shadow.ell(33, 46.6, 20 + bob, .6, 'shadow')
+  leg(g, 27, 33, ff[0], ff[1] - bob, true); leg(g, 44, 32, fr[0], fr[1] - bob, true)
+  const flick = [0, -1, -2, -1, 0, 1][i]
+  g.stroke(47, 27, 2.2, 54, 25 + flick, 1.9, 'dark'); g.stroke(54, 25 + flick, 1.9, 60, 27 - flick, 1.3, 'dark')
+  g.ell(60.5, 27 - flick, 1.1, 1.1, 'dark2')
+  torso(g, 27, 30, 44, 29 - (bob < -1 ? 1 : 0))
+  g.ell(43, 31, 5, 5, 'tan')
+  leg(g, 25, 33, nf[0], nf[1] - bob); leg(g, 44, 33, nr[0], nr[1] - bob)
+  sideHead(g, i)
+  // dust kicked up behind, drifting away
+  const d = painter(buf, W, 0, 0), k = (i + 2) % 6
+  d.ell(50 + k * 2, 44 - k / 2, 2 - k / 3, 1.6 - k / 4, 'dust')
+  if (k < 4) d.px(56 + k * 2, 42 - k, 'dust')
+}
+
 function draw(buf, W, pose, t) {
   const f = t % 2
   if (pose === 'play') return play(buf, W, t)
+  if (pose === 'eat') return eat(buf, W, t)
+  if (pose === 'pee') return pee(buf, W, t)
+  if (pose === 'run') return run(buf, W, t)
   if (pose === 'idle') {
     const g = painter(buf, W, 0, 0)
     frontBody(g, f ? 1.5 : -.5); bandana(g); frontHead(g, t % 7 === 6 ? 'blink' : 'open', false, t % 11 !== 10)

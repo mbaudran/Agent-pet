@@ -13,17 +13,27 @@ Codex. Te enseña qué hace cada sesión de Claude Code que tengas abierta y te 
 | <img src="docs/images/idle.gif" alt="Esperando: parpadea, mueve la cola y la oreja doblada" width="150"> | <img src="docs/images/play.gif" alt="Trabajando: juega con una pelota de tenis" width="190"> | <img src="docs/images/done.gif" alt="¡Saltado!: salta con la lengua fuera" width="150"> | <img src="docs/images/sleep.gif" alt="Durmiendo: tumbado en el suelo" width="190"> |
 | sin nada cocinando | mientras alguna sesión trabaja | cuando una sesión termina | tras 5 minutos de calma |
 
+### Trucos
+
+| Comer | Hacer pis | Correr |
+| :---: | :---: | :---: |
+| <img src="docs/images/eat.gif" alt="Comer: mete el hocico en su cuenco y mastica" width="190"> | <img src="docs/images/pee.gif" alt="Hacer pis: levanta la pata junto a una boca de incendios" width="190"> | <img src="docs/images/run.gif" alt="Correr: galopa con la lengua fuera" width="190"> |
+| 20 s, tras 20 s de pelota | 20 s, justo después de comer | mientras lo arrastras, mirando hacia donde va |
+
+Su rutina, trabaje algo o no: 20 s jugando a la pelota (o sentado), 20 s comiendo, 20 s haciendo
+pis, y vuelta a empezar. También puedes pedirle cada truco con clic derecho → Trucos (dura 20 s).
+
 - **Burbuja:** el último aviso, o lo que está cocinando la sesión más reciente.
   Pasa el ratón por encima y pulsa ✕ para borrarla (borra también los avisos en cola).
 - **Número en el hombro:** cuántas sesiones están cocinando. Punto rojo: aviso sin ver.
-- **Poses:** juega con la pelota mientras algo cocina, salta al terminar, se sienta cuando no
+- **Poses:** juega con la pelota mientras algo cocina (con sus descansos para comer y hacer pis), salta al terminar, se sienta cuando no
   hay nada y se tumba a dormir tras 5 minutos de calma.
 - **Clic en Keloqz:** lista de sesiones; clic en una fila y te lleva a su pestaña de Terminal.
 - **Al pasar el ratón:** 🐾 sesiones · ＋ nueva sesión de Claude en una carpeta · 🔕 silenciar ·
   – minimizar.
 - **Minimizado:** Keloqz se esconde en la barra de menús (🐾 y cuántas sesiones cocinan); clic
   para traerlo de vuelta (o vuelve a abrir Keloqz desde Aplicaciones o Spotlight). Mientras tanto vuelven los banners de Lomo-Saltado.
-- **Clic derecho:** Silenciar · Tamaño S/M/L · Minimizar · Abrir al iniciar sesión · Salir de Keloqz.
+- **Clic derecho:** Silenciar · Tamaño S/M/L · Trucos · Minimizar · Abrir al iniciar sesión · Salir de Keloqz.
 
 ## Compilar e instalar
 

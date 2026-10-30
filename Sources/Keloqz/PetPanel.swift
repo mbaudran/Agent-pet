@@ -138,24 +138,32 @@ final class DragMover {
     private weak var panel: PetPanel?
     private var startMouse: CGPoint?
     private var startOrigin: CGPoint = .zero
+    private var lastX: CGFloat = 0
     private var moved = false
 
     init(panel: PetPanel) {
         self.panel = panel
     }
 
-    func changed() {
-        guard let panel else { return }
+    /// Returns how far the dog moved sideways since the last call, once the
+    /// press has become a drag.
+    @discardableResult
+    func changed() -> CGFloat? {
+        guard let panel else { return nil }
         let mouse = NSEvent.mouseLocation
         guard let start = startMouse else {
             startMouse = mouse
             startOrigin = panel.frame.origin
+            lastX = mouse.x
             moved = false
-            return
+            return nil
         }
         let dx = mouse.x - start.x, dy = mouse.y - start.y
         if abs(dx) > Self.clickSlop || abs(dy) > Self.clickSlop { moved = true }
-        if moved { panel.setFrameOrigin(CGPoint(x: startOrigin.x + dx, y: startOrigin.y + dy)) }
+        guard moved else { return nil }
+        panel.setFrameOrigin(CGPoint(x: startOrigin.x + dx, y: startOrigin.y + dy))
+        defer { lastX = mouse.x }
+        return mouse.x - lastX
     }
 
     /// Returns true when the press was a click rather than a drag.

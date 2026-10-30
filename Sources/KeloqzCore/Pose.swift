@@ -1,16 +1,20 @@
 import Foundation
 
 public enum Pose: String, CaseIterable, Sendable {
-    case idle, play, done, sleep
+    case idle, play, done, sleep, eat, pee, run
 }
 
 public let donePoseFor: TimeInterval = 2
 public let sleepAfter: TimeInterval = 5 * 60
 
 /// Which animation Keloqz plays. `lastActivityAt` is the latest of the last
-/// hover/click and the last moment any session was cooking.
-public func choosePose(lastNotificationAt: Date?, anyCooking: Bool, lastActivityAt: Date, now: Date) -> Pose {
+/// hover/click and the last moment any session was cooking. He runs while
+/// being dragged, and a trick (eat, pee, run) beats everything but ¡Saltado!.
+public func choosePose(lastNotificationAt: Date?, anyCooking: Bool, lastActivityAt: Date, now: Date,
+                       dragging: Bool = false, trick: Pose? = nil) -> Pose {
+    if dragging { return .run }
     if let notified = lastNotificationAt, now.timeIntervalSince(notified) < donePoseFor { return .done }
+    if let trick { return trick }
     if anyCooking { return .play }
     if now.timeIntervalSince(lastActivityAt) >= sleepAfter { return .sleep }
     return .idle

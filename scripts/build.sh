@@ -11,7 +11,7 @@ source scripts/env.sh
 APP="$HOME/Library/Caches/Keloqz/Keloqz.app"
 
 SPRITES="Sources/Keloqz/Resources/sprites"
-for file in idle.png play.png done.png sleep.png sprites.json; do
+for file in idle.png play.png done.png sleep.png eat.png pee.png run.png sprites.json; do
     [ -f "$SPRITES/$file" ] || { echo "Missing $SPRITES/$file — run: node tools/render-sprites.mjs" >&2; exit 1; }
 done
 

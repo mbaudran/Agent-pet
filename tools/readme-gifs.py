@@ -2,7 +2,7 @@
 
     python3 tools/readme-gifs.py      (needs Pillow; run tools/render-sprites.mjs first)
 
-Writes docs/images/{idle,play,done,sleep}.gif and docs/images/poses.gif.
+Writes docs/images/{idle,play,done,sleep,eat,pee,run}.gif and docs/images/poses.gif.
 """
 import json
 from pathlib import Path
